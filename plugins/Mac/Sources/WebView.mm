@@ -30,6 +30,22 @@
 static BOOL s_inEditor;
 static BOOL s_useMetal;
 
+@interface CustomWebview : WKWebView
+@end
+
+@implementation CustomWebview
+
+- (void)keyDown:(NSEvent *)event {
+	
+	NSLog(@"CustomWebView  %d", event.keyCode);
+	
+//	super.keyDown(event);
+	[super keyDown:event];
+}
+
+@end
+
+
 @interface CWebViewPlugin : NSObject<WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler>
 {
     NSWindow *window;
@@ -168,7 +184,7 @@ static std::unordered_map<int, int> _nskey2cgkey{
     configuration.processPool = _sharedProcessPool;
     // configuration.preferences = preferences;
     NSRect frame = NSMakeRect(0, 0, width, height);
-    webView = [[WKWebView alloc] initWithFrame:frame
+    webView = [[CustomWebview alloc] initWithFrame:frame
                                  configuration:configuration];
     [[[webView configuration] preferences] setValue:@YES forKey:@"developerExtrasEnabled"];
     webView.UIDelegate = self;
@@ -197,6 +213,36 @@ static std::unordered_map<int, int> _nskey2cgkey{
         [window orderFront:NSApp];
         windowController = [[NSWindowController alloc] initWithWindow:window];
     }
+	
+// Step 1. Find Main Windows, Append View.
+
+	auto applicationShared = [NSApplication sharedApplication];
+	NSWindow * mainWindow;
+	if ([applicationShared mainWindow]  != nil) {
+		mainWindow = [applicationShared mainWindow];
+	}
+	if ([applicationShared windows].count <= 0) {
+		mainWindow = [applicationShared mainWindow];
+	}
+	if ([applicationShared windows].count == 1) {
+		mainWindow = [applicationShared windows][0];
+	}
+//			for win in NSApplication.shared.windows {
+//				if (win.parent == nil) {
+//					return win;
+//				}
+//			}
+	[mainWindow.contentView addSubview:webView];
+
+//	step 2. adjust view location.
+	auto topView = mainWindow.contentView;
+	webView.translatesAutoresizingMaskIntoConstraints = false;
+	NSLayoutConstraint *topConstraints = [webView.topAnchor constraintEqualToAnchor:topView.topAnchor constant:100];
+	NSLayoutConstraint *bottomConstraints = [webView.bottomAnchor constraintEqualToAnchor:topView.bottomAnchor];
+	NSLayoutConstraint *trailConstraints = [webView.trailingAnchor constraintEqualToAnchor:topView.trailingAnchor];
+	NSLayoutConstraint *leadingConstraints = [webView.leadingAnchor constraintEqualToAnchor:topView.leadingAnchor];
+	
+	[NSLayoutConstraint activateConstraints:@[topConstraints, bottomConstraints, trailConstraints, leadingConstraints] ];
     return self;
 }
 
@@ -994,20 +1040,20 @@ void _CWebViewPlugin_Reload(void *instance)
 
 void _CWebViewPlugin_SendMouseEvent(void *instance, int x, int y, float deltaY, int mouseState)
 {
-    CWebViewPlugin *webViewPlugin = (__bridge CWebViewPlugin *)instance;
-    [webViewPlugin sendMouseEvent:x y:y deltaY:deltaY mouseState:mouseState];
+//    CWebViewPlugin *webViewPlugin = (__bridge CWebViewPlugin *)instance;
+//    [webViewPlugin sendMouseEvent:x y:y deltaY:deltaY mouseState:mouseState];
 }
 
 void _CWebViewPlugin_SendKeyEvent(void *instance, int x, int y, char *keyChars, unsigned short keyCode, int keyState)
 {
-    CWebViewPlugin *webViewPlugin = (__bridge CWebViewPlugin *)instance;
-    [webViewPlugin sendKeyEvent:x y:y keyChars:keyChars keyCode:keyCode keyState:keyState];
+//    CWebViewPlugin *webViewPlugin = (__bridge CWebViewPlugin *)instance;
+//    [webViewPlugin sendKeyEvent:x y:y keyChars:keyChars keyCode:keyCode keyState:keyState];
 }
 
 void _CWebViewPlugin_Update(void *instance, BOOL refreshBitmap)
 {
-    CWebViewPlugin *webViewPlugin = (__bridge CWebViewPlugin *)instance;
-    [webViewPlugin update:refreshBitmap];
+//    CWebViewPlugin *webViewPlugin = (__bridge CWebViewPlugin *)instance;
+//    [webViewPlugin update:refreshBitmap];
 }
 
 int _CWebViewPlugin_BitmapWidth(void *instance)
